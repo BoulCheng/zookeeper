@@ -75,13 +75,13 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                                                + Long.toHexString(sessionId)
                                                + ", likely server has closed socket");
             }
-            if (!incomingBuffer.hasRemaining()) {
+            if (!incomingBuffer.hasRemaining()) { // 先读server响应数据长度incomingBuffer此时等于lenBuffer只有4字节，incomingBuffer重新赋值；然后读取server完整的响应数据
                 incomingBuffer.flip();
-                if (incomingBuffer == lenBuffer) {
+                if (incomingBuffer == lenBuffer) {// 处理server响应数据的长度  incomingBuffer重新赋值
                     recvCount.getAndIncrement();
                     readLength();
-                } else if (!initialized) {
-                    readConnectResult();
+                } else if (!initialized) { // 处理建立连接server响应
+                    readConnectResult();// connect key10 标示state
                     enableRead();
                     if (findSendablePacket(outgoingQueue, sendThread.tunnelAuthInProgress()) != null) {
                         // Since SASL authentication has completed (if client is configured to do so),
@@ -92,7 +92,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                     incomingBuffer = lenBuffer;
                     updateLastHeard();
                     initialized = true;
-                } else {
+                } else {// 处理server响应数据
                     sendThread.readResponse(incomingBuffer);
                     lenBuffer.clear();
                     incomingBuffer = lenBuffer;
@@ -239,6 +239,8 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
      * @throws IOException
      */
     SocketChannel createSock() throws IOException {
+        // TODO: 2020/8/10  tcp sets
+        // connect key1
         SocketChannel sock;
         sock = SocketChannel.open();
         sock.configureBlocking(false);
@@ -273,6 +275,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
         }
         initialized = false;
 
+        // connect key3
         /*
          * Reset incomingBuffer
          */
@@ -376,6 +379,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
     synchronized void enableWrite() {
         int i = sockKey.interestOps();
         if ((i & SelectionKey.OP_WRITE) == 0) {
+            // Register SelectionKey.OP_WRITE if not
             sockKey.interestOps(i | SelectionKey.OP_WRITE);
         }
     }

@@ -1020,7 +1020,7 @@ public class ClientCnxn {
 
                         // Note, we may exceed our max length by a bit when we add the last
                         // watch in the batch. This isn't ideal, but it makes the code simpler.
-                        while (batchLength < SET_WATCHES_MAX_LENGTH) {
+                        while (batchLength < SET_WATCHES_MAX_LENGTH) {// connect key4
                             final String watch;
                             if (dataWatchesIter.hasNext()) {
                                 watch = dataWatchesIter.next();
@@ -1072,6 +1072,7 @@ public class ClientCnxn {
                         null));
             }
             outgoingQueue.addFirst(new Packet(null, null, conReq, null, null, readOnly));
+            // connect key2
             clientCnxnSocket.connectionPrimed();
             LOG.debug("Session establishment request sent on {}", clientCnxnSocket.getRemoteSocketAddress());
         }
@@ -1159,6 +1160,7 @@ public class ClientCnxn {
 
         @Override
         public void run() {
+            //
             clientCnxnSocket.introduce(this, sessionId, outgoingQueue);
             clientCnxnSocket.updateNow();
             clientCnxnSocket.updateLastSendAndHeard();
@@ -1179,8 +1181,9 @@ public class ClientCnxn {
                         } else {
                             serverAddress = hostProvider.next(1000);
                         }
+                        // connect key0
                         startConnect(serverAddress);
-                        clientCnxnSocket.updateLastSendAndHeard();
+                        clientCnxnSocket.updateLastSendAndHeard(); // connect key5
                     }
 
                     if (state.isConnected()) {
@@ -1259,6 +1262,7 @@ public class ClientCnxn {
                         to = Math.min(to, pingRwTimeout - idlePingRwServer);
                     }
 
+                    //
                     clientCnxnSocket.doTransport(to, pendingQueue, ClientCnxn.this);
                 } catch (Throwable e) {
                     if (closing) {
