@@ -503,6 +503,7 @@ public class QuorumPeerConfig {
         // backward compatibility - dynamic configuration in the same file as
         // static configuration params see writeDynamicConfig()
         if (dynamicConfigFileStr == null) {
+            // 集群配置信息
             setupQuorumPeerConfig(zkProp, true);
             if (isDistributed() && isReconfigEnabled()) {
                 // we don't backup static config for standalone mode.
@@ -718,19 +719,24 @@ public class QuorumPeerConfig {
             // is true, the QuorumPeerMain script will create a standalone server instead
             // of a quorum configuration
             LOG.error("Invalid configuration, only one server specified (ignoring)");
+            // 校验节点数
             if (numObservers > 0) {
                 throw new IllegalArgumentException("Observers w/o quorum is an invalid configuration");
             }
         } else {
             if (warnings) {
                 if (numParticipators <= 2) {
+                    // 集群至少三个节点
+                    // If you only have two servers, then you are in a situation where if one of them fails, there are not enough machines to form a majority quorum
                     LOG.warn("No server failure will be tolerated. You need at least 3 servers.");
                 } else if (numParticipators % 2 == 0) {
-                    LOG.warn("Non-optimial configuration, consider an odd number of servers.");
+                    // 集群节点数为奇数个， 为最佳配置
+                    LOG.warn("Non-optimal configuration, consider an odd number of servers.");
                 }
             }
 
             for (QuorumServer s : qv.getVotingMembers().values()) {
+                // 选举
                 if (s.electionAddr == null) {
                     throw new IllegalArgumentException("Missing election port for server: " + s.id);
                 }
@@ -753,6 +759,7 @@ public class QuorumPeerConfig {
             br.close();
         }
         try {
+            // serverId in myid file
             serverId = Long.parseLong(myIdString);
             MDC.put("myid", myIdString);
         } catch (NumberFormatException e) {

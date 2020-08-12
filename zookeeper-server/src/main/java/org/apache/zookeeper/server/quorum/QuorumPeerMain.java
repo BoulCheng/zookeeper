@@ -19,6 +19,7 @@
 package org.apache.zookeeper.server.quorum;
 
 import java.io.IOException;
+import java.util.Map;
 import javax.management.JMException;
 import javax.security.sasl.SaslException;
 import org.apache.yetus.audience.InterfaceAudience;
@@ -43,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * 处理配置文件 zoo.cfg 和 myid
  *
  * <h2>Configuration file</h2>
  *
@@ -80,11 +82,58 @@ public class QuorumPeerMain {
     protected QuorumPeer quorumPeer;
 
     /**
+     *
+     nohup "$JAVA" $ZOO_DATADIR_AUTOCREATE "-Dzookeeper.log.dir=${ZOO_LOG_DIR}" \
+     "-Dzookeeper.log.file=${ZOO_LOG_FILE}" "-Dzookeeper.root.logger=${ZOO_LOG4J_PROP}" \
+     -XX:+HeapDumpOnOutOfMemoryError -XX:OnOutOfMemoryError='kill -9 %p' \
+     -cp "$CLASSPATH" $JVMFLAGS $ZOOMAIN "$ZOOCFG" > "$_ZOO_DAEMON_OUT" 2>&1 < /dev/null &
+
+     * @param args
+     */
+    private static String[] setSyspropAndArgs(String[] args) {
+
+        System.setProperty("zookeeper.log.dir", "/Users/apple/IdeaProjects/private/zookeeper/bin/../logs");
+        System.setProperty("zookeeper.log.file", "zookeeper-apple-server-appledeiMac.local.log");
+        System.setProperty("zookeeper.root.logger", "INFO,CONSOLE");
+        System.setProperty("com.sun.management.jmxremote", "");
+        System.setProperty("com.sun.management.jmxremote.local.only", "false");
+
+        System.out.println(args.length);
+        return new String[]{"/Users/apple/IdeaProjects/private/zookeeper/bin/../conf/zoo.cfg"};
+
+        /**
+         * Starting zookeeper ...
+         * JAVA: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/bin/java
+         * ZOO_DATADIR_AUTOCREATE:
+         * ZOO_LOG_DIR: /Users/apple/IdeaProjects/private/zookeeper/bin/../logs
+         * ZOO_LOG_FILE: zookeeper-apple-server-appledeiMac.local.log
+         * ZOO_LOG4J_PROP: INFO,CONSOLE
+         * CLASSPATH: /Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/classes:/Users/apple/IdeaProjects/private/zookeeper/bin/../build/classes:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/zookeeper-jute-3.6.1.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/token-provider-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/spotbugs-annotations-4.0.2.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/snappy-java-1.1.7.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/slf4j-log4j12-1.7.25.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/slf4j-api-1.7.25.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/objenesis-2.6.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/nimbus-jose-jwt-4.41.2.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/netty-transport-native-unix-common-4.1.48.Final.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/netty-transport-native-epoll-4.1.48.Final.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/netty-transport-4.1.48.Final.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/netty-resolver-4.1.48.Final.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/netty-handler-4.1.48.Final.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/netty-common-4.1.48.Final.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/netty-codec-4.1.48.Final.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/netty-buffer-4.1.48.Final.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/mockito-core-2.27.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/metrics-core-3.2.5.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/log4j-1.2.17.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerby-xdr-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerby-util-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerby-pkix-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerby-config-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerby-asn1-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerb-util-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerb-simplekdc-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerb-server-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerb-identity-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerb-crypto-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerb-core-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerb-common-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerb-client-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/kerb-admin-2.0.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/junit-4.12.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jsr305-3.0.2.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/json-smart-2.3.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/json-simple-1.1.1.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jmockit-1.48.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jline-2.11.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jetty-util-9.4.24.v20191120.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jetty-servlet-9.4.24.v20191120.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jetty-server-9.4.24.v20191120.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jetty-security-9.4.24.v20191120.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jetty-io-9.4.24.v20191120.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jetty-http-9.4.24.v20191120.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jcip-annotations-1.0-1.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/javax.servlet-api-3.1.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jackson-databind-2.10.3.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jackson-core-2.10.3.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/jackson-annotations-2.10.3.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/hamcrest-core-1.3.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/hamcrest-all-1.3.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/commons-lang-2.6.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/commons-io-2.6.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/commons-collections-3.2.2.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/commons-cli-1.2.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/byte-buddy-agent-1.9.10.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/byte-buddy-1.9.10.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/bcprov-jdk15on-1.60.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/bcpkix-jdk15on-1.60.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/audience-annotations-0.5.0.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/asm-5.0.4.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/target/lib/accessors-smart-1.2.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../build/lib/*.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../lib/*.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-*.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../zookeeper-server/src/main/resources/lib/*.jar:/Users/apple/IdeaProjects/private/zookeeper/bin/../conf:
+         * JVMFLAGS: -Xmx1000m
+         * ZOOMAIN: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false org.apache.zookeeper.server.quorum.QuorumPeerMain
+         * ZOOCFG: /Users/apple/IdeaProjects/private/zookeeper/bin/../conf/zoo.cfg
+         * _ZOO_DAEMON_OUT: /Users/apple/IdeaProjects/private/zookeeper/bin/../logs/zookeeper-apple-server-appledeiMac.local.out
+         * STARTED
+         */
+
+    }
+    /**
+     * zkServer.sh  mainclass
      * To start the replicated server specify the configuration file name on
      * the command line.
-     * @param args path to the configfile
+     * @param args path to the configfile (zoo.cfg)
      */
     public static void main(String[] args) {
+        args = setSyspropAndArgs(args);
+
+        LOG.info("==========args");
+        for (int i = 0; i < args.length; i++) {
+            System.out.println(i + ": " + args[i]);
+        }
+        for (Map.Entry entry : System.getProperties().entrySet()) {
+            System.out.println(entry.getKey().toString() + ": " + entry.getValue().toString());
+        }
+
         QuorumPeerMain main = new QuorumPeerMain();
         try {
             main.initializeAndRun(args);
@@ -121,6 +170,7 @@ public class QuorumPeerMain {
     protected void initializeAndRun(String[] args) throws ConfigException, IOException, AdminServerException {
         QuorumPeerConfig config = new QuorumPeerConfig();
         if (args.length == 1) {
+            // 解析zoo.cfg 处理配置信息
             config.parse(args[0]);
         }
 
@@ -133,8 +183,10 @@ public class QuorumPeerMain {
         purgeMgr.start();
 
         if (args.length == 1 && config.isDistributed()) {
+            // zkServer集群
             runFromConfig(config);
         } else {
+            // zkServer单机
             LOG.warn("Either no config or no quorum defined in config, running in standalone mode");
             // there is only server in the quorum -- run as standalone
             ZooKeeperServerMain.main(args);

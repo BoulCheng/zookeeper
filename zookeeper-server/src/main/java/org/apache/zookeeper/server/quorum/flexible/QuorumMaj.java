@@ -31,6 +31,7 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
  * This class implements a validator for majority quorums. The implementation is
  * straightforward.
  *
+ * 集群节点信息
  */
 public class QuorumMaj implements QuorumVerifier {
 
@@ -86,20 +87,22 @@ public class QuorumMaj implements QuorumVerifier {
             String key = entry.getKey().toString();
             String value = entry.getValue().toString();
 
+            // 解析集群节点 server.X
             if (key.startsWith("server.")) {
                 int dot = key.indexOf('.');
                 long sid = Long.parseLong(key.substring(dot + 1));
                 QuorumServer qs = new QuorumServer(sid, value);
-                allMembers.put(Long.valueOf(sid), qs);
+                allMembers.put(Long.valueOf(sid), qs); // 所有节点
                 if (qs.type == LearnerType.PARTICIPANT) {
-                    votingMembers.put(Long.valueOf(sid), qs);
+                    votingMembers.put(Long.valueOf(sid), qs); // PARTICIPANT类型节点
                 } else {
-                    observingMembers.put(Long.valueOf(sid), qs);
+                    observingMembers.put(Long.valueOf(sid), qs); // OBSERVER类型节点
                 }
             } else if (key.equals("version")) {
                 version = Long.parseLong(value, 16);
             }
         }
+        // PARTICIPANT类型节点 半数 (涉及过半写成功策略)
         half = votingMembers.size() / 2;
     }
 
@@ -141,6 +144,10 @@ public class QuorumMaj implements QuorumVerifier {
         return allMembers;
     }
 
+    /**
+     * 可用于判断是否是集群
+     * @return
+     */
     public Map<Long, QuorumServer> getVotingMembers() {
         return votingMembers;
     }

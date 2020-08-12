@@ -148,13 +148,25 @@ _ZOO_DAEMON_OUT="$ZOO_LOG_DIR/zookeeper-$USER-server-$HOSTNAME.out"
 
 case $1 in
 start)
-    echo  -n "Starting zookeeper ... "
+    echo  "Starting zookeeper ... "
     if [ -f "$ZOOPIDFILE" ]; then
       if kill -0 `cat "$ZOOPIDFILE"` > /dev/null 2>&1; then
          echo $command already running as process `cat "$ZOOPIDFILE"`.
          exit 1
       fi
     fi
+
+    echo -n "JAVA: "; echo "$JAVA"
+    echo -n "ZOO_DATADIR_AUTOCREATE: "; echo "$ZOO_DATADIR_AUTOCREATE"
+    echo -n "ZOO_LOG_DIR: "; echo "${ZOO_LOG_DIR}"
+    echo -n "ZOO_LOG_FILE: "; echo "${ZOO_LOG_FILE}"
+    echo -n "ZOO_LOG4J_PROP: "; echo "${ZOO_LOG4J_PROP}"
+    echo -n "CLASSPATH: "; echo "$CLASSPATH"
+    echo -n "JVMFLAGS: "; echo "$JVMFLAGS"
+    echo -n "ZOOMAIN: "; echo "$ZOOMAIN"
+    echo -n "ZOOCFG: "; echo "$ZOOCFG"
+    echo -n "_ZOO_DAEMON_OUT: "; echo "$_ZOO_DAEMON_OUT"
+
     nohup "$JAVA" $ZOO_DATADIR_AUTOCREATE "-Dzookeeper.log.dir=${ZOO_LOG_DIR}" \
     "-Dzookeeper.log.file=${ZOO_LOG_FILE}" "-Dzookeeper.root.logger=${ZOO_LOG4J_PROP}" \
     -XX:+HeapDumpOnOutOfMemoryError -XX:OnOutOfMemoryError='kill -9 %p' \

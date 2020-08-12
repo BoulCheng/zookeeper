@@ -211,6 +211,9 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
 
         public String hostname;
 
+        /**
+         * 默认 PARTICIPANT
+         */
         public LearnerType type = LearnerType.PARTICIPANT;
 
         public boolean isClientAddrFromStatic = false;
@@ -339,6 +342,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             }
 
             if (newType != null) {
+                // TODO: 2020/8/12  
                 type = newType;
             }
 
@@ -513,7 +517,13 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
      * conditions change (e.g. which state to become after LOOKING).
      */
     public enum LearnerType {
+        /**
+         * 参与投票和选举  both vote in instances of consensus and to elect or become a Leader
+         */
         PARTICIPANT,
+        /**
+         * 不参与投票和选举
+         */
         OBSERVER
     }
 
