@@ -1018,6 +1018,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             baos.close();
             ByteBuffer bb = ByteBuffer.wrap(baos.toByteArray());
             bb.putInt(bb.remaining() - 4).rewind();
+            // 发送建立连接的响应数据
             cnxn.sendBuffer(bb);
 
             if (valid) {

@@ -71,6 +71,9 @@ public class NIOServerCnxn extends ServerCnxn {
 
     private ByteBuffer incomingBuffer = lenBuffer;
 
+    /**
+     * 写-ByteBuffer缓冲队列 异步写
+     */
     private final Queue<ByteBuffer> outgoingBuffers = new LinkedBlockingQueue<ByteBuffer>();
 
     private int sessionTimeout;
@@ -129,6 +132,7 @@ public class NIOServerCnxn extends ServerCnxn {
     }
 
     /**
+     * 放入 the outgoing buffer queue 异步写
      * sendBuffer pushes a byte buffer onto the outgoing buffer queue for
      * asynchronous writes.
      */
@@ -164,6 +168,9 @@ public class NIOServerCnxn extends ServerCnxn {
                                        DisconnectReason.UNABLE_TO_READ_FROM_CLIENT);
     }
 
+    /**
+     * 处理接受到的有效信息
+     */
     /** Read the request payload (everything following the length prefix) */
     private void readPayload() throws IOException, InterruptedException, ClientCnxnLimitException {
         if (incomingBuffer.remaining() != 0) { // have we read length bytes?
@@ -177,8 +184,10 @@ public class NIOServerCnxn extends ServerCnxn {
             incomingBuffer.flip();
             packetReceived(4 + incomingBuffer.remaining());
             if (!initialized) {
+                // 处理连接请求
                 readConnectRequest();
             } else {
+                //
                 readRequest();
             }
             lenBuffer.clear();
@@ -311,6 +320,7 @@ public class NIOServerCnxn extends ServerCnxn {
     }
 
     /**
+     * zkServer 处理zkCli连接的 IO
      * Handles read/write IO on connection.
      */
     void doIO(SelectionKey k) throws InterruptedException {
@@ -407,6 +417,7 @@ public class NIOServerCnxn extends ServerCnxn {
     // entailed a state change, register an interest op update request with
     // the selector.
     public void enableRecv() {
+        // 更新 throttled
         if (throttled.compareAndSet(true, false)) {
             requestInterestOpsUpdate();
         }
@@ -524,6 +535,9 @@ public class NIOServerCnxn extends ServerCnxn {
         }
     }
 
+    /**
+     * 处理接受到的有效信息的数据长度
+     */
     /** Reads the first 4 bytes of lenBuffer, which could be true length or
      *  four letter word.
      *

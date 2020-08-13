@@ -42,6 +42,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * a multi-threaded ServerCnxnFactory
+ * Communication between threads is handled via queues.
+ *  
+ * with large numbers of connections, select() itself can become a performance bottleneck.
+ * 
  * NIOServerCnxnFactory implements a multi-threaded ServerCnxnFactory using
  * NIO non-blocking socket calls. Communication between threads is handled via
  * queues.
@@ -226,6 +231,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
                     if (!key.isValid()) {
                         continue;
                     }
+                    // 接受zkCli建立连接
                     if (key.isAcceptable()) {
                         if (!doAccept()) {
                             // If unable to pull a new connection off the accept
@@ -291,8 +297,9 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
                 if (!selectorIterator.hasNext()) {
                     selectorIterator = selectorThreads.iterator();
                 }
+                // 轮询selectorThread
                 SelectorThread selectorThread = selectorIterator.next();
-                if (!selectorThread.addAcceptedConnection(sc)) {
+                if (!selectorThread.addAcceptedConnection(sc)) { // AcceptThread 通过 acceptedQueue 和SelectorThread进行通信，将已经建立的连接SocketChannel交给SelectorThread
                     throw new IOException("Unable to add connection to selector queue"
                                           + (stopped ? " (shutdown in progress)" : ""));
                 }
@@ -333,6 +340,9 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
 
         private final int id;
         private final Queue<SocketChannel> acceptedQueue;
+        /**
+         * 需要更新 interestOps 的SelectionKey队列
+         */
         private final Queue<SelectionKey> updateQueue;
 
         public SelectorThread(int id) throws IOException {
@@ -356,6 +366,8 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
         }
 
         /**
+         * because interest ops reads/sets are potentially blocking operations if other select operations are happening.
+         *
          * Place interest op update requests onto a queue so that only the
          * selector thread modifies interest ops, because interest ops
          * reads/sets are potentially blocking operations if other select
@@ -450,9 +462,15 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
 
             // Stop selecting this key while processing on its
             // connection
+            /**
+             * 同一个SelectionKey不能并发操作的原因
+             * {@link java.nio.channels.ReadableByteChannel#read(ByteBuffer)} This method may be invoked at any time. If another thread has already initiated a read operation upon this channel, however, then an invocation of this method will block until the first operation is complete.
+             */
             cnxn.disableSelectable();
             key.interestOps(0);
             touchCnxn(cnxn);
+            // 将连接SocketChannel的 IO处理交给 WorkerThreadPool 处理
+            // When there is no worker thread pool, do the work directly and wait for its completion
             workerPool.schedule(workRequest);
         }
 
@@ -538,6 +556,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
             // Push an update request on the queue to resume selecting
             // on the current set of interest ops, which may have changed
             // as a result of the I/O operations we just performed.
+            // 在队列上推送一个更新请求，以恢复对当前感兴趣的操作集的选择，这些操作可能由于我们刚刚执行的I/O操作而发生了更改。
             if (!selectorThread.addInterestOpsUpdateRequest(key)) {
                 cnxn.close(ServerCnxn.DisconnectReason.CONNECTION_MODE_CHANGED);
             }
@@ -629,6 +648,14 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
     private AcceptThread acceptThread;
     private final Set<SelectorThread> selectorThreads = new HashSet<SelectorThread>();
 
+    /**
+     * expirerThread  selectorThreads acceptThread
+     * @param addr
+     * @param maxcc
+     * @param backlog
+     * @param secure
+     * @throws IOException
+     */
     @Override
     public void configure(InetSocketAddress addr, int maxcc, int backlog, boolean secure) throws IOException {
         if (secure) {
@@ -730,6 +757,9 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
         return listenBacklog;
     }
 
+    /**
+     * 启动 SelectorThread  acceptThread expireThread  IO-WorkerThreadPool
+     */
     @Override
     public void start() {
         stopped = false;
