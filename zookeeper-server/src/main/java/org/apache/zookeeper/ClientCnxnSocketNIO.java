@@ -70,7 +70,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
         }
         if (sockKey.isReadable()) {
             int rc = sock.read(incomingBuffer);
-            if (rc < 0) {
+            if (rc < 0) { // 当zkServer 关闭连接 客户端会收到 -1， 此时如果ClientCnxn未被关闭 SendThread会继续循环 即尝试进行重新连接
                 throw new EndOfStreamException("Unable to read additional data from server sessionid 0x"
                                                + Long.toHexString(sessionId)
                                                + ", likely server has closed socket");

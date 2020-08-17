@@ -430,7 +430,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
 
                 Set<SelectionKey> selected = selector.selectedKeys();
                 ArrayList<SelectionKey> selectedList = new ArrayList<SelectionKey>(selected);
-                Collections.shuffle(selectedList);
+                Collections.shuffle(selectedList); // 使  SelectionKey 顺序随机
                 Iterator<SelectionKey> selectedKeys = selectedList.iterator();
                 while (!stopped && selectedKeys.hasNext()) {
                     SelectionKey key = selectedKeys.next();
@@ -468,6 +468,8 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
              */
             cnxn.disableSelectable();
             key.interestOps(0);
+
+            // zkServer处理连接的读写请求 则更新该连接的过期时间
             touchCnxn(cnxn);
             // 将连接SocketChannel的 IO处理交给 WorkerThreadPool 处理
             // When there is no worker thread pool, do the work directly and wait for its completion
@@ -548,6 +550,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
                     selectorThread.cleanupSelectionKey(key);
                     return;
                 }
+                // zkServer处理连接的读写请求 则更新该连接的过期时间
                 touchCnxn(cnxn);
             }
 
@@ -587,6 +590,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
                         Thread.sleep(waitTime);
                         continue;
                     }
+                    // 客户端会话失效时间到期 zkServer关闭连接
                     for (NIOServerCnxn conn : cnxnExpiryQueue.poll()) {
                         ServerMetrics.getMetrics().SESSIONLESS_CONNECTIONS_EXPIRED.add(1);
                         conn.close(ServerCnxn.DisconnectReason.CONNECTION_EXPIRED);
@@ -670,7 +674,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
         // cnxnExpiryQueue. These don't need to be the same, but the expiring
         // interval passed into the ExpiryQueue() constructor below should be
         // less than or equal to the timeout.
-        cnxnExpiryQueue = new ExpiryQueue<NIOServerCnxn>(sessionlessCnxnTimeout);
+        cnxnExpiryQueue = new ExpiryQueue<NIOServerCnxn>(sessionlessCnxnTimeout);// 队列初始化 设置 expirationInterval
         expirerThread = new ConnectionExpirerThread();
 
         int numCores = Runtime.getRuntime().availableProcessors();
@@ -833,6 +837,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
      * @param cnxn
      */
     public void touchCnxn(NIOServerCnxn cnxn) {
+        // (初始化或)更新连接的过期时间
         cnxnExpiryQueue.update(cnxn, cnxn.getSessionTimeout());
     }
 
@@ -860,6 +865,8 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
         set.add(cnxn);
 
         cnxns.add(cnxn);
+        //初始化客户端连接的过期时间
+        //由于过期时间是expirationInterval的整数倍， 对于客户端会话的真正过期时间 = now + timeout + interval (0 < interval < expirationInterval)
         touchCnxn(cnxn);
     }
 
