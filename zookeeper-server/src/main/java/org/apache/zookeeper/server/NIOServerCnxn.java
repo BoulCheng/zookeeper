@@ -339,6 +339,7 @@ public class NIOServerCnxn extends ServerCnxn {
                     boolean isPayload;
                     if (incomingBuffer == lenBuffer) { // start of next request
                         incomingBuffer.flip();
+                        // 读取收到的数据长度
                         isPayload = readLength(k);
                         incomingBuffer.clear();
                     } else {
@@ -551,6 +552,7 @@ public class NIOServerCnxn extends ServerCnxn {
         if (!initialized && checkFourLetterWord(sk, len)) {
             return false;
         }
+        // 读取收到的数据长度  数据长度合法性校验
         if (len < 0 || len > BinaryInputArchive.maxBuffer) {
             throw new IOException("Len error " + len);
         }
@@ -558,6 +560,7 @@ public class NIOServerCnxn extends ServerCnxn {
             throw new IOException("ZooKeeperServer not running");
         }
         // checkRequestSize will throw IOException if request is rejected
+        // 数据长度校验
         zkServer.checkRequestSizeWhenReceivingMessage(len);
         incomingBuffer = ByteBuffer.allocate(len);
         return true;

@@ -32,6 +32,7 @@ public class BinaryInputArchive implements InputArchive {
     public static final String UNREASONBLE_LENGTH = "Unreasonable length = ";
 
     // CHECKSTYLE.OFF: ConstantName - for backward compatibility
+    // jute协议最大数据(字节)长度
     public static final int maxBuffer = Integer.getInteger("jute.maxbuffer", 0xfffff);
     // CHECKSTYLE.ON:
     private static final int extraMaxBuffer;

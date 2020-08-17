@@ -96,6 +96,9 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 /**
+ * 管理客户端的套接字i/o
+ * This class manages the socket i/o for the client
+ *
  * This class manages the socket i/o for the client. ClientCnxn maintains a list
  * of available servers to connect to and "transparently" switches servers it is
  * connected to as needed.
@@ -142,11 +145,13 @@ public class ClientCnxn {
     private final CopyOnWriteArraySet<AuthData> authInfo = new CopyOnWriteArraySet<AuthData>();
 
     /**
+     * 已发送且等待响应的数据包
      * These are the packets that have been sent and are waiting for a response.
      */
-    private final Queue<Packet> pendingQueue = new ArrayDeque<>();
+    private final Queue<Packet> pendingQueue = new ArrayDeque<>(); // 为什么用ArrayDeque
 
     /**
+     * 待发送的数据包队列
      * These are the packets that need to be sent.
      */
     private final LinkedBlockingDeque<Packet> outgoingQueue = new LinkedBlockingDeque<Packet>();
@@ -174,6 +179,7 @@ public class ClientCnxn {
     private byte[] sessionPasswd = new byte[16];
 
     /**
+     * 标示客户端是否允许切换到只读模式，如果网络另一端的服务器是分区的，那么它将只接受只读客户端。
      * If true, the connection is allowed to go to r-o mode. This field's value
      * is sent, besides other data, during session creation handshake. If the
      * server on the other side of the wire is partitioned it'll accept
@@ -323,6 +329,7 @@ public class ClientCnxn {
                     requestHeader.serialize(boa, "header");
                 }
                 if (request instanceof ConnectRequest) {
+                    // 处理TCP连接建立完 发送的数据协议
                     request.serialize(boa, "connect");
                     // append "am-I-allowed-to-be-readonly" flag
                     boa.writeBool(readOnly, "readOnly");
@@ -331,7 +338,14 @@ public class ClientCnxn {
                 }
                 baos.close();
                 this.bb = ByteBuffer.wrap(baos.toByteArray());
-                this.bb.putInt(this.bb.capacity() - 4);
+
+                // 更新-1为有效信息数据长度 boa.writeInt(-1, "len");
+                // 此时 ByteBuffer position = 0
+                // Writes four bytes containing the given int value, in the
+                //     * current byte order, into this buffer at the current position, and then
+                //     * increments the position by four.
+                this.bb.putInt(this.bb.capacity() - 4); // 更新数据字节长度
+                //更新-1为有效信息数据长度后 重新设置 position = 0;
                 this.bb.rewind();
             } catch (IOException e) {
                 LOG.warn("Unexpected exception", e);
@@ -436,6 +450,7 @@ public class ClientCnxn {
         this.hostProvider = hostProvider;
         this.chrootPath = chrootPath;
 
+        // 连接超时计算
         connectTimeout = sessionTimeout / hostProvider.size();
         readTimeout = sessionTimeout * 2 / 3;
         readOnly = canBeReadOnly;
@@ -1074,6 +1089,7 @@ public class ClientCnxn {
                         null,
                         null));
             }
+            //TCP建立完成，会发送一个连接数据包，此处将连接数据包加入 待发送的数据包队列
             outgoingQueue.addFirst(new Packet(null, null, conReq, null, null, readOnly));
             // connect key2
             clientCnxnSocket.connectionPrimed();
@@ -1422,6 +1438,7 @@ public class ClientCnxn {
             hostProvider.onConnected();
             sessionId = _sessionId;
             sessionPasswd = _sessionPasswd;
+            // 客户端发送ConnectRequest 并收到zkServer的响应后 才更新
             state = (isRO) ? States.CONNECTEDREADONLY : States.CONNECTED;
             seenRwServerBefore |= !isRO;
             LOG.info(

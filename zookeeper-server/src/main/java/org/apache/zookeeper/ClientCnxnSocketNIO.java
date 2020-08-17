@@ -104,6 +104,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
             Packet p = findSendablePacket(outgoingQueue, sendThread.tunnelAuthInProgress());
 
             if (p != null) {
+                // 更新发送时间
                 updateLastSend();
                 // If we already started writing p, p.bb will already exist
                 if (p.bb == null) {
@@ -114,14 +115,17 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                     }
                     p.createBB();
                 }
+                // 向zkServer发送数据
                 sock.write(p.bb);
                 if (!p.bb.hasRemaining()) {
+                    // ByteBuffer 数据全部发送完
                     sentCount.getAndIncrement();
                     outgoingQueue.removeFirstOccurrence(p);
                     if (p.requestHeader != null
                         && p.requestHeader.getType() != OpCode.ping
                         && p.requestHeader.getType() != OpCode.auth) {
                         synchronized (pendingQueue) {
+                            // 加入 pendingQueue 队列
                             pendingQueue.add(p);
                         }
                     }
@@ -135,6 +139,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                 // in doTransport() if not.
                 disableWrite();
             } else if (!initialized && p != null && !p.bb.hasRemaining()) {
+                //第一次发送 ConnectRequest
                 // On initial connection, write the complete connect request
                 // packet, but then disable further writes until after
                 // receiving a successful connection response.  If the
@@ -169,6 +174,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
         while (iter.hasNext()) {
             Packet p = iter.next();
             if (p.requestHeader == null) {
+                // 启动数据包
                 // We've found the priming-packet. Move it to the beginning of the queue.
                 iter.remove();
                 outgoingQueue.addFirst(p);
@@ -343,6 +349,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
             SocketChannel sc = ((SocketChannel) k.channel());
             if ((k.readyOps() & SelectionKey.OP_CONNECT) != 0) {
                 if (sc.finishConnect()) {
+                    // TCP 连接建立完成
                     updateLastSendAndHeard();
                     updateSocketAddresses();
                     sendThread.primeConnection();
