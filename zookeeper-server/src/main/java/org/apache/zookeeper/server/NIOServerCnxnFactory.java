@@ -486,6 +486,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
                 SelectionKey key = null;
                 try {
                     key = accepted.register(selector, SelectionKey.OP_READ);
+                    // 服务端与每一个客户端的连接  都会创建一个NIOServerCnxn
                     NIOServerCnxn cnxn = createConnection(accepted, key, this);
                     key.attach(cnxn);
                     addCnxn(cnxn);

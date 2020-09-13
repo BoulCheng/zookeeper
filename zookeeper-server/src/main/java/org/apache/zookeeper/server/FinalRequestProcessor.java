@@ -107,6 +107,8 @@ public class FinalRequestProcessor implements RequestProcessor {
     }
 
     public void processRequest(Request request) {
+        // TODO: 2020/9/13
+        //服务端处理客户端发送的请求
         LOG.debug("Processing request:: {}", request);
 
         // request.addRQRec(">final");
@@ -361,6 +363,7 @@ public class FinalRequestProcessor implements RequestProcessor {
                 break;
             }
             case OpCode.getData: {
+                // 处理 getData
                 lastOp = "GETD";
                 GetDataRequest getDataRequest = new GetDataRequest();
                 ByteBufferInputStream.byteBuffer2Record(request.request, getDataRequest);
@@ -642,6 +645,7 @@ public class FinalRequestProcessor implements RequestProcessor {
         }
         zks.checkACL(cnxn, zks.getZKDatabase().aclForNode(n), ZooDefs.Perms.READ, authInfo, path, null);
         Stat stat = new Stat();
+        // getDataRequest.getWatch() 判断客户端发送的请求是否标示需要注册 Watch
         byte[] b = zks.getZKDatabase().getData(path, stat, getDataRequest.getWatch() ? cnxn : null);
         return new GetDataResponse(b, stat);
     }

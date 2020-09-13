@@ -84,6 +84,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * the tree data structure:
+ * a hashtable that maps from full paths to DataNodes and a tree of DataNodes
+ * All accesses to a path is through the hashtable. The tree is traversed only when serializing to disk.
+ *
  * This class maintains the tree data structure. It doesn't have any networking
  * or client connection code in it so that it can be tested in a stand alone
  * way.
@@ -104,8 +108,10 @@ public class DataTree {
      */
     private final NodeHashMap nodes;
 
+    //监听数据变更的Watcher
     private IWatchManager dataWatches;
 
+    //监听子节点变更的Watcher
     private IWatchManager childWatches;
 
     /** cached total size of paths and data for all DataNodes */
@@ -716,6 +722,7 @@ public class DataTree {
         synchronized (n) {
             n.copyStat(stat);
             if (watcher != null) {
+                // 服务端注册 Watcher(ServerCnxn 对应一个服务端与客户端的连接)
                 dataWatches.addWatch(path, watcher);
             }
             data = n.data;

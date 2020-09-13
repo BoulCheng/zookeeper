@@ -279,6 +279,7 @@ public class ZooKeeper implements AutoCloseable {
      */
     static class ZKWatchManager implements ClientWatchManager {
 
+        // 客户端 数据节点的路径和Watcher的映射关系
         private final Map<String, Set<Watcher>> dataWatches = new HashMap<String, Set<Watcher>>();
         private final Map<String, Set<Watcher>> existWatches = new HashMap<String, Set<Watcher>>();
         private final Map<String, Set<Watcher>> childWatches = new HashMap<String, Set<Watcher>>();
@@ -650,6 +651,7 @@ public class ZooKeeper implements AutoCloseable {
          * add the watch on the path.
          */
         public void register(int rc) {
+            // 把Watcher加入ZKWatchManager
             if (shouldAddWatch(rc)) {
                 Map<String, Set<Watcher>> watches = getWatches(rc);
                 synchronized (watches) {
@@ -1025,6 +1027,7 @@ public class ZooKeeper implements AutoCloseable {
             watchManager,
             getClientCnxnSocket(),
             canBeReadOnly);
+        // 启动zkCli线程
         cnxn.start();
     }
 
@@ -2332,6 +2335,7 @@ public class ZooKeeper implements AutoCloseable {
         // the watch contains the un-chroot path
         WatchRegistration wcb = null;
         if (watcher != null) {
+            // 生成DataWatchRegistration   不会被序列化网络传输到服务端
             wcb = new DataWatchRegistration(watcher, clientPath);
         }
 
@@ -2341,6 +2345,7 @@ public class ZooKeeper implements AutoCloseable {
         h.setType(ZooDefs.OpCode.getData);
         GetDataRequest request = new GetDataRequest();
         request.setPath(serverPath);
+        // 设置 watch 标志， 会被序列化网络传输到服务端
         request.setWatch(watcher != null);
         GetDataResponse response = new GetDataResponse();
         ReplyHeader r = cnxn.submitRequest(h, request, response, wcb);

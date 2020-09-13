@@ -39,6 +39,10 @@ import org.slf4j.LoggerFactory;
  * This class manages watches. It allows watches to be associated with a string
  * and removes watchers and their watches in addition to managing triggers.
  */
+
+/**
+ * 负责Watcher事件的触发
+ */
 public class WatchManager implements IWatchManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(WatchManager.class);
@@ -69,6 +73,7 @@ public class WatchManager implements IWatchManager {
 
     @Override
     public synchronized boolean addWatch(String path, Watcher watcher, WatcherMode watcherMode) {
+        // 服务端Watcher管理管理
         if (isDeadWatcher(watcher)) {
             LOG.debug("Ignoring addWatch with closed cnxn");
             return false;

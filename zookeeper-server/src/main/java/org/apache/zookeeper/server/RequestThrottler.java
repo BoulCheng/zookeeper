@@ -136,6 +136,7 @@ public class RequestThrottler extends ZooKeeperCriticalThread {
                     break;
                 }
 
+                // 处理 客户端发送到服务端的请求
                 Request request = submittedRequests.take();
                 if (Request.requestOfDeath == request) {
                     break;
