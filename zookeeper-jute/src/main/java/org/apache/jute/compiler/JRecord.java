@@ -475,6 +475,7 @@ public class JRecord extends JCompType {
             jj.write("    a_.endRecord(this,tag);\n");
             jj.write("  }\n");
 
+            // 生成序列化方法
             jj.write("  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {\n");
             jj.write("    a_.startRecord(tag);\n");
             fIdx = 0;

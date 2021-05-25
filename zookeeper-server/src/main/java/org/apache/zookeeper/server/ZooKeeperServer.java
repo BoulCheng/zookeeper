@@ -1505,6 +1505,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         if (!isLargeRequest(length)) {
             return true;
         }
+        // TODO: 2020/8/17  
         if (currentLargeRequestBytes.get() + length <= largeRequestMaxBytes) {
             return true;
         } else {

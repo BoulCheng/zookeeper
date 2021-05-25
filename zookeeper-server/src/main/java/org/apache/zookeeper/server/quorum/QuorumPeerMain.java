@@ -189,6 +189,7 @@ public class QuorumPeerMain {
             // zkServer单机
             LOG.warn("Either no config or no quorum defined in config, running in standalone mode");
             // there is only server in the quorum -- run as standalone
+            // TODO: 2020/8/12  
             ZooKeeperServerMain.main(args);
         }
     }
@@ -237,6 +238,7 @@ public class QuorumPeerMain {
             quorumPeer.setInitLimit(config.getInitLimit());
             quorumPeer.setSyncLimit(config.getSyncLimit());
             quorumPeer.setConnectToLearnerMasterLimit(config.getConnectToLearnerMasterLimit());
+            // TODO: 2020/8/13  
             quorumPeer.setObserverMasterPort(config.getObserverMasterPort());
             quorumPeer.setConfigFileName(config.getConfigFilename());
             quorumPeer.setClientPortListenBacklog(config.getClientPortListenBacklog());

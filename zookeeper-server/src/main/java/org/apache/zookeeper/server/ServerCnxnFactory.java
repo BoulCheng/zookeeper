@@ -144,6 +144,8 @@ public abstract class ServerCnxnFactory {
     public abstract void start();
 
     protected ZooKeeperServer zkServer;
+
+    // TODO: 2020/9/13 集群设置  zkServer  ZooKeeperServer的子类
     public final void setZooKeeperServer(ZooKeeperServer zks) {
         this.zkServer = zks;
         if (zks != null) {

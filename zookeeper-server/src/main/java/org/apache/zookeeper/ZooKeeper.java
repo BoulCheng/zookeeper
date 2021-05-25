@@ -816,6 +816,7 @@ public class ZooKeeper implements AutoCloseable {
      *             if an invalid chroot path is specified
      */
     public ZooKeeper(String connectString, int sessionTimeout, Watcher watcher) throws IOException {
+        // TODO: 2020/8/14  
         this(connectString, sessionTimeout, watcher, false);
     }
 

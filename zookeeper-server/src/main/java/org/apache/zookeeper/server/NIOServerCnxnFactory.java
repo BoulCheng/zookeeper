@@ -392,6 +392,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
                 while (!stopped) {
                     try {
                         select();
+                        // TODO: 2020/8/12  
                         processAcceptedConnections();
                         processInterestOpsUpdateRequests();
                     } catch (RuntimeException e) {
@@ -702,11 +703,13 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
 
         listenBacklog = backlog;
         this.ss = ServerSocketChannel.open();
+        // TODO: 2020/8/12  
         ss.socket().setReuseAddress(true);
         LOG.info("binding to port {}", addr);
         if (listenBacklog == -1) {
             ss.socket().bind(addr);
         } else {
+            // TODO: 2020/8/12  
             ss.socket().bind(addr, listenBacklog);
         }
         ss.configureBlocking(false);
